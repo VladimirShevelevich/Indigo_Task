@@ -7,13 +7,14 @@ using System.Linq;
 public class Test : MonoBehaviour {
 
 
-    public string myText;
+    string myText;
     Dictionary<string, int> dict;
 
 
     void Start ()
     {
-        AddToTable();
+
+        //AddToTable();
         //var random = new System.Random().Next(dict.Count);
         //Debug.Log(dict.ElementAt(random).Key);
 	}
@@ -26,7 +27,6 @@ public class Test : MonoBehaviour {
 
     void ShowMax()
     {
-
         int maxValue = dict.Values.Max();
         string maxKey = dict.FirstOrDefault(x => x.Value == maxValue).Key;
         Debug.Log(maxKey);

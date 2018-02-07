@@ -1,0 +1,16 @@
+ManifestFileVersion: 0
+CRC: 1762176825
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: c4c1dc2bdfe15c4726511b426f9f424a
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 5ad585dd02dfb5016c0dad519eab8f49
+HashAppended: 0
+ClassTypes:
+- Class: 49
+  Script: {instanceID: 0}
+Assets:
+- Assets/alice30.txt
+Dependencies: []

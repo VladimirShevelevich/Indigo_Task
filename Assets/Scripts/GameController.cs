@@ -6,11 +6,19 @@ using AssetBundles;
 public class GameController : MonoBehaviour {
 
     string workingText;
+    WordTable wordTable;
 
     IEnumerator Start()
     {
         yield return GetTextFromBundle();
-        Debug.Log(workingText.Length);
+        wordTable = new WordTable(workingText);
+        Debug.Log(wordTable.GetMin());
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+            Debug.Log( wordTable.GetMin());
     }
 
     IEnumerator GetTextFromBundle()

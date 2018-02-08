@@ -10,6 +10,14 @@ public class GameController : MonoBehaviour {
     public Transform wordPosition;
     public Transform keyboard;
     public GameObject letterButtonPrefab;
+    public Text attemptsLeftText;
+    int attemptLeft;
+    public Text scoreText;
+    int score;
+    public Text resultText;
+
+    [HideInInspector]
+    public bool isPlayMode;
 
     string workingText;
     WordTable wordTable;
@@ -27,10 +35,10 @@ public class GameController : MonoBehaviour {
 
     IEnumerator Start()
     {
+
         yield return GetTextFromBundle();
-        wordTable = new WordTable(workingText);
-        yield return  currentWord = wordTable.GetRandom();
-        ShowNewWord();
+        wordTable = new WordTable(workingText);        
+        StartCoroutine(ShowNewWord());
         CreateKeyboard();
     }
 
@@ -67,15 +75,39 @@ public class GameController : MonoBehaviour {
         }
     }
 
-    void ShowNewWord()
+    IEnumerator ShowNewWord()
     {
+        foreach(Transform child in wordPosition.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        yield return currentWord = wordTable.GetRandom();
+        RefreshKeyboard();
+
         for (int i=0; i<currentWord.letters.Count; i++)
         {
             GameObject newLetter = Instantiate(letterPrefab, wordPosition);
             SetChar(newLetter, currentWord.letters[i].value);
         }
-
+        isPlayMode = true;
         Debug.Log("Current word: "+ currentWord.word);
+        UpdateAttempts(settings.maximumAttempts);
+    }
+
+    void UpdateAttempts(int amount)
+    {
+        attemptLeft = amount;
+        if (attemptLeft >= 0)
+            attemptsLeftText.text = "Attempts: " + attemptLeft;
+        else
+            StartCoroutine(GameOver());
+    }
+
+    void UpdateScore(int amount)
+    {
+        score = amount;
+        scoreText.text = "Score: " + score;
     }
 
     void SetChar(GameObject obj, string value)
@@ -88,21 +120,55 @@ public class GameController : MonoBehaviour {
         currentWord.letters[pos].isKnown = true;
         wordPosition.GetChild(pos).Find("Black").gameObject.SetActive(false);
         if (WordIsOpen())
-            Victory();
+            StartCoroutine(Victory());
     }
 
-    void Victory()
+    IEnumerator Victory()
     {
-        Debug.Log("Victory");
+        isPlayMode = false;
+        UpdateScore(score += attemptLeft);
+        ShowMessage("Victory!");
+        yield return new WaitForSeconds(1.5f);
+        ShowMessage("");
+        StartCoroutine(ShowNewWord());
+    }
+
+    IEnumerator GameOver()
+    {
+        isPlayMode = false;
+        ShowMessage("Game Over!");
+        yield return new WaitForSeconds(1.5f);
+        ShowMessage("");
+        UpdateScore(0);
+        StartCoroutine(ShowNewWord());
+    }
+
+    void ShowMessage(string result)
+    {
+        resultText.text = result;
+    }
+
+    void RefreshKeyboard()
+    {
+        for (int i = 0; i<keyboard.transform.childCount; i++)
+        {
+            keyboard.transform.GetChild(i).GetComponent<LetterButton>().ReturnButton();
+        }
     }
 
     public void CheckLetter(string letter)
     {
+        bool success = false;
         for (int i = 0; i < currentWord.letters.Count; i++)
         {
-            if (currentWord.letters[i].value.Equals(letter,System.StringComparison.OrdinalIgnoreCase))
-                OpenLetter(i);            
+            if (currentWord.letters[i].value.Equals(letter, System.StringComparison.OrdinalIgnoreCase))
+            {
+                OpenLetter(i);
+                success = true;
+            }
         }
+        if (!success)
+            UpdateAttempts(attemptLeft-1);
     }
 
     bool WordIsOpen()

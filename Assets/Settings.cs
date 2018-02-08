@@ -6,5 +6,5 @@ using UnityEngine;
 public class Settings : ScriptableObject {
 
     public int minLength;
-    public int attempts;
+    public int maximumAttempts;
 }

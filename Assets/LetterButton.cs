@@ -14,6 +14,8 @@ public class LetterButton : MonoBehaviour {
 
     public void OnPressButton()
     {
+        if (!GameController.instance.isPlayMode)
+            return;
         GameController.instance.CheckLetter(letter);
         GetComponent<Image>().enabled = false;
         Text.SetActive(false);

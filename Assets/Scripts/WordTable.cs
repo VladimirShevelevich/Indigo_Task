@@ -6,42 +6,74 @@ using System.Linq;
 public class WordTable {
 
     Dictionary<string, int> dict;
+    string[] words;
 
     public WordTable(string text)
     {
         dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        string[] words = text.Split(new[] { ' ', ',', ':', '?', '!', '\'', '.','-','(',')','`',';','\n' }, StringSplitOptions.RemoveEmptyEntries);
+        words = text.Split(new[] { ' ', ',', ':', '?', '!', '\'', '.','-','(',')','`',';','\n','"','_','*',']','[' }, StringSplitOptions.RemoveEmptyEntries);
+        CreateTable();
+    }
+
+    void CreateTable()
+    {
+        int minLength = GameController.instance.settings.minimumLength;
         for (int i = 0; i < words.Length; i++)
         {
             String word = words[i];
-            if (dict.ContainsKey(word))
-                dict[words[i]]++;
-            else
-                dict.Add(word, 1);
+            if (word.Length >= minLength)
+            {
+                if (dict.ContainsKey(word))
+                    dict[words[i]]++;
+                else
+                    dict.Add(word, 1);
+            }
         }
     }
 
-
-    public Word GetRandom()
+    public Word GetWord()
     {
-        var random = new System.Random().Next(dict.Count);
-        string s = dict.ElementAt(random).Key;
-        return(new Word(s));
+        if (dict.Count == 0)
+            return null;
+        switch (GameController.instance.settings.choiceMethod)
+        {
+            case ChoiceMethod.random:
+                return GetRandom();
+            case ChoiceMethod.mostFrequent:
+                return GetMax();
+            case ChoiceMethod.lessFrequent:
+                return GetMin();
+            default:
+                return null;
+        }
     }
 
-    public string GetMax()
+    public void RefreshTable()
+    {
+        CreateTable();
+    }
+
+    Word GetRandom()
+    {
+        var random = new System.Random().Next(dict.Count);
+        string randomKey = dict.ElementAt(random).Key;
+        dict.Remove(randomKey);
+        return(new Word(randomKey));
+    }
+
+    Word GetMax()
     {
         int maxValue = dict.Values.Max();
         string maxKey = dict.FirstOrDefault(x => x.Value == maxValue).Key;
         dict.Remove(maxKey);
-        return maxKey;
+        return (new Word(maxKey));
     }
 
-    public string GetMin()
+    Word GetMin()
     {
         int minValue = dict.Values.Min();
         string minKey = dict.FirstOrDefault(x => x.Value == minValue).Key;
         dict.Remove(minKey);
-        return minKey;
+        return (new Word(minKey));
     }
 }

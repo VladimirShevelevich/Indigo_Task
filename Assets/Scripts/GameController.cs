@@ -5,17 +5,17 @@ using AssetBundles;
 
 public class GameController : MonoBehaviour {
 
+    #region FIELDS
     public Settings settings;
     public GameObject letterPrefab;
+    public GameObject letterButtonPrefab;
     public Transform wordPosition;
     public Transform keyboard;
-    public GameObject letterButtonPrefab;
     public Text attemptsLeftText;
-    int attemptLeft;
     public Text scoreText;
-    int score;
     public Text resultText;
-
+    int attemptLeft;
+    int score;
     [HideInInspector]
     public bool isPlayMode;
 
@@ -23,9 +23,8 @@ public class GameController : MonoBehaviour {
     WordTable wordTable;
     Word currentWord;
 
-    public string testString;
-
     public static GameController instance;
+    #endregion
 
     private void Awake()
     {
@@ -35,15 +34,21 @@ public class GameController : MonoBehaviour {
 
     IEnumerator Start()
     {
-
+        // Load text from the asset bundle
         yield return GetTextFromBundle();
-        wordTable = new WordTable(workingText);        
+
+        // Create new Dictionary for text
+        wordTable = new WordTable(workingText);       
+        
+        // Get new word from the dictionary
         StartCoroutine(ShowNewWord());
+
         CreateKeyboard();
     }
 
     IEnumerator GetTextFromBundle()
     {
+        //Initialize bundle
         yield return StartCoroutine(Initialize());
         yield return StartCoroutine(InstantiateGameObjectAsync("textfile", "alice30"));
     }
@@ -62,13 +67,14 @@ public class GameController : MonoBehaviour {
             yield break;
         yield return StartCoroutine(request);
 
-        // Get the asset.
+        // Assign loaded text to 'workingText' string
         TextAsset prefab = request.GetAsset<TextAsset>();
         workingText = prefab.text;
     }
 
     void CreateKeyboard()
     {
+        // Create buttons object and set a letter
         for (char ch = 'A'; ch<='Z'; ch++)
         {
             Instantiate(letterButtonPrefab, keyboard).GetComponent<LetterButton>().letter = ch.ToString();
@@ -77,14 +83,26 @@ public class GameController : MonoBehaviour {
 
     IEnumerator ShowNewWord()
     {
-        foreach(Transform child in wordPosition.transform)
+        // Delete an old word
+        foreach (Transform child in wordPosition.transform)
         {
             Destroy(child.gameObject);
         }
 
-        yield return currentWord = wordTable.GetRandom();
+        // Get word from the dictionary
+        yield return currentWord = wordTable.GetWord();
+
+        // If there is no words restart the game
+        if (currentWord == null)
+        {
+            StartCoroutine(GameOver("Victory! Words are over!"));
+            yield break;
+        }
+
+        // Restore the keyboard
         RefreshKeyboard();
 
+        // Create letter objects and set a value
         for (int i=0; i<currentWord.letters.Count; i++)
         {
             GameObject newLetter = Instantiate(letterPrefab, wordPosition);
@@ -92,16 +110,19 @@ public class GameController : MonoBehaviour {
         }
         isPlayMode = true;
         Debug.Log("Current word: "+ currentWord.word);
+
+        // Restore attempts to maximum
         UpdateAttempts(settings.maximumAttempts);
     }
 
     void UpdateAttempts(int amount)
     {
+        // if there is no attempts call GameOver method
         attemptLeft = amount;
         if (attemptLeft >= 0)
             attemptsLeftText.text = "Attempts: " + attemptLeft;
         else
-            StartCoroutine(GameOver());
+            StartCoroutine(GameOver("Game Over"));
     }
 
     void UpdateScore(int amount)
@@ -112,13 +133,17 @@ public class GameController : MonoBehaviour {
 
     void SetChar(GameObject obj, string value)
     {
+        // Get text object and set a letter
         obj.transform.Find("Text").GetComponent<Text>().text = value.ToUpper();
     }
 
     void OpenLetter(int pos)
     {
+        // remove black squere and change the letter status
         currentWord.letters[pos].isKnown = true;
         wordPosition.GetChild(pos).Find("Black").gameObject.SetActive(false);
+
+        // Check if all letters are open call Victory() method
         if (WordIsOpen())
             StartCoroutine(Victory());
     }
@@ -126,20 +151,31 @@ public class GameController : MonoBehaviour {
     IEnumerator Victory()
     {
         isPlayMode = false;
+
+        // Add score
         UpdateScore(score += attemptLeft);
         ShowMessage("Victory!");
         yield return new WaitForSeconds(1.5f);
         ShowMessage("");
+
+        // Call a new word
         StartCoroutine(ShowNewWord());
     }
 
-    IEnumerator GameOver()
+    IEnumerator GameOver(string message)
     {
         isPlayMode = false;
-        ShowMessage("Game Over!");
-        yield return new WaitForSeconds(1.5f);
+        ShowMessage(message);
+        yield return new WaitForSeconds(2);
         ShowMessage("");
+
+        // Set score to zero
         UpdateScore(0);
+
+        // Restore the keyboard
+        wordTable.RefreshTable();
+
+        // Call a new word
         StartCoroutine(ShowNewWord());
     }
 
@@ -150,6 +186,7 @@ public class GameController : MonoBehaviour {
 
     void RefreshKeyboard()
     {
+        // Get buttons components and call Return() method
         for (int i = 0; i<keyboard.transform.childCount; i++)
         {
             keyboard.transform.GetChild(i).GetComponent<LetterButton>().ReturnButton();
@@ -158,6 +195,8 @@ public class GameController : MonoBehaviour {
 
     public void CheckLetter(string letter)
     {
+        //Check if pressed letter is equal to any of the words letter ignoring case. 
+        //If succeeded open the letter, otherwise reduce attempts amount
         bool success = false;
         for (int i = 0; i < currentWord.letters.Count; i++)
         {
@@ -173,6 +212,7 @@ public class GameController : MonoBehaviour {
 
     bool WordIsOpen()
     {
+        // Check if every letter has 'isKnown' status
         for (int i=0; i<currentWord.letters.Count; i++)
         {
             if (!currentWord.letters[i].isKnown)

@@ -10,7 +10,7 @@ public class WordTable {
     public WordTable(string text)
     {
         dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        string[] words = text.Split(new[] { ' ', ',', ':', '?', '!', '\'', '.','-' }, StringSplitOptions.RemoveEmptyEntries);
+        string[] words = text.Split(new[] { ' ', ',', ':', '?', '!', '\'', '.','-','(',')','`',';','\n' }, StringSplitOptions.RemoveEmptyEntries);
         for (int i = 0; i < words.Length; i++)
         {
             String word = words[i];

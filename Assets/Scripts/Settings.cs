@@ -1,7 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// The method by which new words will be chosen
+/// </summary>
 public enum ChoiceMethod
 {
     random,

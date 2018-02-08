@@ -7,18 +7,28 @@ public class GameController : MonoBehaviour {
 
     string workingText;
     WordTable wordTable;
+    Word currentWord;
+
+    public string testString;
 
     IEnumerator Start()
     {
         yield return GetTextFromBundle();
-        wordTable = new WordTable(workingText);
-        Debug.Log(wordTable.GetMin());
+        wordTable = new WordTable(testString);
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
-            Debug.Log( wordTable.GetMin());
+        {
+
+            currentWord = wordTable.GetRandom();
+
+            foreach (Letter l in currentWord.letters)
+            {
+                Debug.Log(l.value);
+            }
+        }
     }
 
     IEnumerator GetTextFromBundle()

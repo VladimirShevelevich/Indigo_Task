@@ -9,8 +9,8 @@ public class WordTable {
 
     public WordTable(string text)
     {
-        dict = new Dictionary<string, int>();
-        string[] words = text.Split(new[] { ' ', ',', ':', '?', '!', '\'', '.' }, StringSplitOptions.RemoveEmptyEntries);
+        dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        string[] words = text.Split(new[] { ' ', ',', ':', '?', '!', '\'', '.','-' }, StringSplitOptions.RemoveEmptyEntries);
         for (int i = 0; i < words.Length; i++)
         {
             String word = words[i];
@@ -19,6 +19,14 @@ public class WordTable {
             else
                 dict.Add(word, 1);
         }
+    }
+
+
+    public Word GetRandom()
+    {
+        var random = new System.Random().Next(dict.Count);
+        string s = dict.ElementAt(random).Key;
+        return(new Word(s));
     }
 
     public string GetMax()
